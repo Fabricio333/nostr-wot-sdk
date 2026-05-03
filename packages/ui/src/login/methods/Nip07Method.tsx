@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Nip07Signer,
   isNip07Available,
@@ -10,9 +10,13 @@ import {
 export function Nip07Method({
   onError,
   onAttached,
+  icon,
+  recommended = false,
 }: {
   onError: (msg: string) => void;
   onAttached: (signer: NostrSigner, pubkey: string) => void | Promise<void>;
+  icon?: ReactNode;
+  recommended?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -41,9 +45,10 @@ export function Nip07Method({
       className="nui-method-button"
       onClick={click}
       data-busy={busy}
+      data-nui-recommended={recommended ? "true" : "false"}
       disabled={busy}
     >
-      <span className="nui-method-icon" aria-hidden>🔌</span>
+      <span className="nui-method-icon" aria-hidden>{icon ?? "🔌"}</span>
       <span className="nui-method-text">
         <span className="nui-method-label">
           Browser extension

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   isNip07Available,
   type NostrSigner,
@@ -71,6 +71,31 @@ export interface LoginWidgetProps {
   /** Hide the "Advanced" disclosure for generate + import. Default false. */
   hideAdvanced?: boolean;
   /**
+   * Render every active method in a single flat list — no "Advanced"
+   * disclosure, no divider. Useful when you want all four flows visible at
+   * once. Default false.
+   */
+  flatLayout?: boolean;
+  /**
+   * Per-method icon overrides. Replaces the default emoji in each method
+   * card. Pass any `ReactNode` (typically an inline SVG component) keyed by
+   * `LoginMethodId` (`nip07`, `nip46`, `generate`, `import`).
+   */
+  methodIcons?: Partial<Record<LoginMethodId, ReactNode>>;
+  /**
+   * Which method gets the visually-prominent "recommended" treatment so the
+   * user has a clear primary action.
+   *   - `"auto"` (default): NIP-07 when a browser extension is detected,
+   *     otherwise `generate`. Re-evaluates if an extension is injected late.
+   *   - `"none"`: every method renders with equal weight.
+   *   - `LoginMethodId`: explicitly recommend that method.
+   *
+   * Recommended button gets `data-nui-recommended="true"`; others get
+   * `data-nui-recommended="false"`. The default stylesheet uses these
+   * attributes for the visual contrast.
+   */
+  recommended?: "auto" | "none" | LoginMethodId;
+  /**
    * Renderable shown below the methods when `nip07` is in the method list
    * but no `window.nostr` is detected. Default: a CTA pointing to
    * https://nostr-wot.com/download. Pass `false` to suppress entirely or
@@ -130,6 +155,9 @@ export function LoginWidget({
   authBaseUrl,
   rollbackOnAuthFailure = false,
   hideAdvanced = false,
+  flatLayout = false,
+  methodIcons,
+  recommended = "auto",
   noExtensionCta,
   profileSetup = false,
   profileRelays,
@@ -151,6 +179,35 @@ export function LoginWidget({
     | { kind: "import" }
   >({ kind: "picker" });
   const [showAdvanced, setShowAdvanced] = useState(false);
+  // Re-poll for window.nostr — extensions sometimes inject after first paint.
+  const [hasNip07, setHasNip07] = useState<boolean>(() => isNip07Available());
+  useEffect(() => {
+    if (hasNip07) return;
+    const id = window.setInterval(() => {
+      if (isNip07Available()) {
+        setHasNip07(true);
+        window.clearInterval(id);
+      }
+    }, 400);
+    const stop = window.setTimeout(() => window.clearInterval(id), 5000);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(stop);
+    };
+  }, [hasNip07]);
+
+  const recommendedMethod: LoginMethodId | null =
+    recommended === "none"
+      ? null
+      : recommended === "auto"
+        ? hasNip07 && methods.includes("nip07")
+          ? "nip07"
+          : methods.includes("generate")
+            ? "generate"
+            : (methods[0] ?? null)
+        : methods.includes(recommended)
+          ? recommended
+          : null;
 
   const onErr = (msg: string) => {
     setError(msg);
@@ -214,8 +271,12 @@ export function LoginWidget({
       }
     };
 
-  const primaryMethods = methods.filter((m) => m === "nip07" || m === "nip46");
-  const advancedMethods = methods.filter((m) => m === "generate" || m === "import");
+  const primaryMethods = flatLayout
+    ? methods
+    : methods.filter((m) => m === "nip07" || m === "nip46");
+  const advancedMethods = flatLayout
+    ? []
+    : methods.filter((m) => m === "generate" || m === "import");
 
   const ctaToRender =
     noExtensionCta === false
@@ -281,20 +342,26 @@ export function LoginWidget({
             }}
           >
             {primaryMethods.includes("nip07") && (
-              <Nip07Method onError={onErr} onAttached={attachedFor("nip07")} />
+              <Nip07Method
+                onError={onErr}
+                onAttached={attachedFor("nip07")}
+                recommended={recommendedMethod === "nip07"}
+                {...(methodIcons?.nip07 ? { icon: methodIcons.nip07 } : {})}
+              />
             )}
             {primaryMethods.includes("nip46") && (
               <button
                 type="button"
                 className={cx("nui-method-button", classes?.method)}
                 style={styles?.method}
+                data-nui-recommended={recommendedMethod === "nip46" ? "true" : "false"}
                 onClick={() => setView({ kind: "nip46-form" })}
               >
                 <span
                   className={cx("nui-method-icon", classes?.methodIcon)}
                   aria-hidden
                 >
-                  🔐
+                  {methodIcons?.nip46 ?? "🔐"}
                 </span>
                 <span className={cx("nui-method-text", classes?.methodText)}>
                   <span
@@ -306,6 +373,44 @@ export function LoginWidget({
                     className={cx("nui-method-hint", classes?.methodHint)}
                   >
                     NIP-46 — Amber, Nsec.app
+                  </span>
+                </span>
+              </button>
+            )}
+            {flatLayout && primaryMethods.includes("generate") && (
+              <button
+                type="button"
+                className={cx("nui-method-button", classes?.method)}
+                style={styles?.method}
+                data-nui-recommended={recommendedMethod === "generate" ? "true" : "false"}
+                onClick={() => setView({ kind: "generate" })}
+              >
+                <span className={cx("nui-method-icon", classes?.methodIcon)} aria-hidden>
+                  {methodIcons?.generate ?? "✨"}
+                </span>
+                <span className="nui-method-text">
+                  <span className="nui-method-label">Create a new account</span>
+                  <span className="nui-method-hint">
+                    Generates a fresh keypair on this device
+                  </span>
+                </span>
+              </button>
+            )}
+            {flatLayout && primaryMethods.includes("import") && (
+              <button
+                type="button"
+                className={cx("nui-method-button", classes?.method)}
+                style={styles?.method}
+                data-nui-recommended={recommendedMethod === "import" ? "true" : "false"}
+                onClick={() => setView({ kind: "import" })}
+              >
+                <span className={cx("nui-method-icon", classes?.methodIcon)} aria-hidden>
+                  {methodIcons?.import ?? "🔑"}
+                </span>
+                <span className="nui-method-text">
+                  <span className="nui-method-label">Paste private key</span>
+                  <span className="nui-method-hint">
+                    nsec or 64-char hex — risky in browsers
                   </span>
                 </span>
               </button>
@@ -339,9 +444,12 @@ export function LoginWidget({
                         type="button"
                         className={cx("nui-method-button", classes?.method)}
                         style={styles?.method}
+                        data-nui-recommended={recommendedMethod === "generate" ? "true" : "false"}
                         onClick={() => setView({ kind: "generate" })}
                       >
-                        <span className="nui-method-icon" aria-hidden>✨</span>
+                        <span className="nui-method-icon" aria-hidden>
+                          {methodIcons?.generate ?? "✨"}
+                        </span>
                         <span className="nui-method-text">
                           <span className="nui-method-label">
                             Create a new account
@@ -357,9 +465,12 @@ export function LoginWidget({
                         type="button"
                         className={cx("nui-method-button", classes?.method)}
                         style={styles?.method}
+                        data-nui-recommended={recommendedMethod === "import" ? "true" : "false"}
                         onClick={() => setView({ kind: "import" })}
                       >
-                        <span className="nui-method-icon" aria-hidden>🔑</span>
+                        <span className="nui-method-icon" aria-hidden>
+                          {methodIcons?.import ?? "🔑"}
+                        </span>
                         <span className="nui-method-text">
                           <span className="nui-method-label">
                             Paste private key
