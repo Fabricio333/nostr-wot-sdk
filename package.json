@@ -21,7 +21,8 @@
     "packages/wot",
     "packages/ui",
     "packages/auth",
-    "packages/sdk"
+    "packages/sdk",
+    "examples/login-playground"
   ],
   "scripts": {
     "build": "npm run build -w @nostr-wot/data && npm run build -w @nostr-wot/relay && npm run build -w @nostr-wot/signers && npm run build -w @nostr-wot/blossom && npm run build -w @nostr-wot/dm && npm run build -w @nostr-wot/wallet && npm run build -w @nostr-wot/wot && npm run build -w @nostr-wot/ui && npm run build -w @nostr-wot/auth && npm run build -w nostr-wot-sdk",

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "paths": {
+      "@nostr-wot/ui": ["../../packages/ui/src/index.ts"],
+      "@nostr-wot/ui/styles.css": ["../../packages/ui/src/styles.css"],
+      "@nostr-wot/data": ["../../packages/data/src/index.ts"],
+      "@nostr-wot/data/react": ["../../packages/data/src/react/index.ts"],
+      "@nostr-wot/data/cache": ["../../packages/data/src/cache/index.ts"],
+      "@nostr-wot/signers": ["../../packages/signers/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

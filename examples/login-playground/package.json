@@ -1,0 +1,28 @@
+{
+  "name": "@nostr-wot/login-playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Vite sandbox for editing + testing the @nostr-wot/ui login modal flows against real Nostr relays. Aliases point at packages/*/src/ so edits hot-reload.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nostr-wot/data": "*",
+    "@nostr-wot/signers": "*",
+    "@nostr-wot/ui": "*",
+    "nostr-tools": "^2.23.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
