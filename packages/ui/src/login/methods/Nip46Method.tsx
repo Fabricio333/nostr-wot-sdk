@@ -321,25 +321,27 @@ export function Nip46Method({
                 </p>
               )}
               {qrUri && (
-                <details style={{ fontSize: 12 }}>
-                  <summary
-                    style={{
-                      cursor: "pointer",
-                      color: "var(--nui-muted)",
-                      textAlign: "center",
-                    }}
+                <div className="nui-qr-actions">
+                  <a
+                    href={qrUri}
+                    className="nui-pill nui-pill-primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    Or copy the connect URI
-                  </summary>
-                  <div className="nui-key-display" style={{ marginTop: 8 }}>
-                    {qrUri}
-                  </div>
-                </details>
+                    Open in signer app
+                  </a>
+                  <button
+                    type="button"
+                    className="nui-pill nui-pill-secondary"
+                    onClick={() => void navigator.clipboard?.writeText(qrUri)}
+                  >
+                    Copy connect URI
+                  </button>
+                </div>
               )}
               <button
                 type="button"
-                className="nui-back"
-                style={{ alignSelf: "center" }}
+                className="nui-pill nui-pill-ghost nui-qr-restart"
                 onClick={() => {
                   cancelQr();
                   void startQr();

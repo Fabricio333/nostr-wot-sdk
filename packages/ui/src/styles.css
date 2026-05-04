@@ -165,6 +165,108 @@
   border-radius: 999px;
 }
 
+/* la-crypta · NIP-46 tabs need real contrast on the active state. Default
+ * `nui-tab-active` uses --nui-bg = #0a0a0a inside a #0a0a0a tab strip → no
+ * visible difference. Lift the active tab to #2a3318 (olive) with a green
+ * border so it reads as selected. */
+[data-nui-root][data-nui-theme="la-crypta"] .nui-tabs {
+  background: #0a0a0a;
+  border-color: #262626;
+  padding: 4px;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-tab {
+  color: #a3a3a3;
+  font-weight: 500;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-tab:hover {
+  color: #fafafa;
+  background: rgba(255, 255, 255, 0.02);
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-tab-active {
+  background: #2a3318;
+  color: #b4f953;
+  box-shadow: inset 0 0 0 1px rgba(180, 249, 83, 0.4);
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-tab-active:hover {
+  background: #34401f;
+  color: #b4f953;
+}
+
+/* la-crypta · key cards / action chips / forms refinement */
+[data-nui-root][data-nui-theme="la-crypta"] .nui-keycard {
+  background: #0a0a0a;
+  border-color: #262626;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-keycard.is-danger {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.04);
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-action-chip {
+  background: #1a1a1a;
+  border-color: #404040;
+  color: #fafafa;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-action-chip:hover {
+  border-color: #b4f953;
+  color: #b4f953;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-confirm-card {
+  background: rgba(248, 113, 113, 0.06);
+  border-color: rgba(248, 113, 113, 0.25);
+  border-radius: 14px;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-back-pill {
+  background: #171717;
+  border-color: #262626;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-image-zone {
+  background: #0a0a0a;
+  border-color: #404040;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-pill-secondary {
+  background: #262626;
+  border-color: #404040;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-pill-secondary:hover:not(:disabled) {
+  background: #2f2f2f;
+  border-color: #525252;
+}
+
+/* la-crypta · profile media */
+[data-nui-root][data-nui-theme="la-crypta"] .nui-banner-slot {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+  border-color: #262626;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-avatar-btn {
+  border-color: #171717;
+  background: #0a0a0a;
+  color: #525252;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-banner-btn:hover .nui-banner-overlay,
+[data-nui-root][data-nui-theme="la-crypta"]
+  .nui-banner-btn:focus-visible
+  .nui-banner-overlay {
+  background: rgba(180, 249, 83, 0.15);
+  color: #b4f953;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-avatar-btn:hover .nui-avatar-overlay,
+[data-nui-root][data-nui-theme="la-crypta"]
+  .nui-avatar-btn:focus-visible
+  .nui-avatar-overlay {
+  background: rgba(180, 249, 83, 0.2);
+  color: #b4f953;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-icon-btn {
+  background: rgba(0, 0, 0, 0.55);
+  border-color: rgba(180, 249, 83, 0.2);
+  color: #fafafa;
+}
+[data-nui-root][data-nui-theme="la-crypta"] .nui-icon-btn:hover {
+  background: rgba(180, 249, 83, 0.18);
+  border-color: rgba(180, 249, 83, 0.5);
+  color: #b4f953;
+}
+
 /* ─── Login button ─────────────────────────────────────────── */
 .nui-login-button {
   display: inline-flex;
@@ -499,3 +601,493 @@
   padding: 4px 8px;
 }
 .nui-profile-skip:hover { color: var(--nui-fg); }
+
+/* ─── Forms (generate / nip46-form / etc.) ─────────────────── */
+.nui-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nui-form-head { display: flex; flex-direction: column; gap: 4px; }
+.nui-form-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--nui-fg);
+}
+.nui-form-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nui-muted);
+  line-height: 1.5;
+}
+
+.nui-back-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--nui-border);
+  background: var(--nui-input-bg);
+  color: var(--nui-muted);
+  font: 500 12px var(--nui-font);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.nui-back-pill:hover {
+  color: var(--nui-fg);
+  border-color: var(--nui-fg);
+}
+
+/* Pill button system (replaces the legacy nui-login-button for new code) */
+.nui-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--nui-btn-radius);
+  border: 1px solid transparent;
+  font: 500 13px var(--nui-font);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+.nui-pill:disabled { opacity: 0.45; cursor: not-allowed; }
+.nui-pill-primary {
+  background: var(--nui-primary);
+  color: var(--nui-primary-fg);
+}
+.nui-pill-primary:hover:not(:disabled) {
+  background: var(--nui-primary-hover);
+}
+.nui-pill-secondary {
+  background: var(--nui-input-bg);
+  color: var(--nui-fg);
+  border-color: var(--nui-border);
+}
+.nui-pill-secondary:hover:not(:disabled) {
+  border-color: var(--nui-fg);
+}
+.nui-pill-ghost {
+  background: transparent;
+  color: var(--nui-muted);
+  border-color: var(--nui-border);
+}
+.nui-pill-ghost:hover:not(:disabled) {
+  color: var(--nui-fg);
+  border-color: var(--nui-fg);
+}
+
+.nui-spinner-sm {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: nui-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Key cards (generated nsec/npub) */
+.nui-keycard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--nui-card-radius);
+  border: 1px solid var(--nui-border);
+  background: var(--nui-input-bg);
+}
+.nui-keycard.is-danger {
+  border-color: color-mix(in oklab, var(--nui-danger) 36%, transparent);
+  background: color-mix(in oklab, var(--nui-danger) 6%, var(--nui-input-bg));
+}
+.nui-keycard-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nui-muted);
+  font-weight: 600;
+}
+.nui-keycard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nui-keycard-value {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--nui-fg);
+  word-break: break-all;
+}
+.nui-keycard-secondary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Small chip-style action button (Copy / Reveal / Download) */
+.nui-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--nui-border);
+  background: var(--nui-bg);
+  color: var(--nui-fg);
+  font: 500 12px var(--nui-font);
+  cursor: pointer;
+  transition: all 120ms ease;
+  flex-shrink: 0;
+}
+.nui-action-chip:hover {
+  border-color: var(--nui-primary);
+  color: var(--nui-primary);
+}
+.nui-action-chip.is-copied {
+  border-color: var(--nui-primary);
+  background: color-mix(in oklab, var(--nui-primary) 14%, transparent);
+  color: var(--nui-primary);
+}
+
+/* Acknowledge / warning checkbox card */
+.nui-confirm-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--nui-card-radius);
+  border: 1px solid color-mix(in oklab, var(--nui-danger) 30%, transparent);
+  background: color-mix(in oklab, var(--nui-danger) 5%, transparent);
+  color: var(--nui-fg);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.nui-confirm-card input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--nui-primary);
+  width: 16px;
+  height: 16px;
+}
+
+.nui-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--nui-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.nui-toggle-row input[type="checkbox"] {
+  accent-color: var(--nui-primary);
+  width: 14px;
+  height: 14px;
+}
+
+.nui-actions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nui-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.nui-field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--nui-muted);
+}
+.nui-field-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--nui-muted);
+}
+.nui-mode-toggle {
+  background: transparent;
+  border: none;
+  color: var(--nui-primary);
+  font: 500 11px var(--nui-font);
+  cursor: pointer;
+  padding: 0;
+}
+.nui-mode-toggle:hover { text-decoration: underline; }
+.nui-textarea {
+  resize: vertical;
+  min-height: 64px;
+  font: 13px var(--nui-font);
+}
+
+/* Image upload zone (avatar / banner) */
+.nui-image-zone {
+  position: relative;
+  border-radius: var(--nui-card-radius);
+  background: var(--nui-input-bg);
+  border: 1px dashed var(--nui-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nui-image-zone-square {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  align-self: center;
+}
+.nui-image-zone-wide {
+  width: 100%;
+  height: 96px;
+}
+.nui-image-empty {
+  font-size: 28px;
+  color: var(--nui-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nui-image-preview {
+  display: block;
+}
+.nui-image-preview-square {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.nui-image-preview-wide {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.nui-image-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--nui-border);
+  background: var(--nui-bg);
+  color: var(--nui-fg);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nui-image-clear:hover { color: var(--nui-danger); }
+.nui-upload-btn { width: 100%; }
+
+/* Profile media — banner with overlapping circular avatar */
+.nui-profile-media {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  margin-bottom: 8px;
+}
+.nui-banner-slot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 1;
+  border-radius: var(--nui-card-radius);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--nui-input-bg) 0%, var(--nui-bg) 100%);
+  border: 1px solid var(--nui-border);
+}
+.nui-banner-btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: block;
+}
+.nui-banner-btn:disabled { cursor: not-allowed; }
+.nui-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.nui-banner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: 500 13px var(--nui-font);
+  color: var(--nui-muted);
+  background: transparent;
+  transition: background 150ms ease, color 150ms ease;
+}
+.nui-banner-overlay[data-filled="false"] {
+  background: transparent;
+  color: var(--nui-muted);
+}
+.nui-banner-btn:hover .nui-banner-overlay,
+.nui-banner-btn:focus-visible .nui-banner-overlay {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+/* When filled the overlay is hidden until hover. */
+.nui-banner-overlay[data-filled="true"] {
+  opacity: 0;
+}
+.nui-banner-btn:hover .nui-banner-overlay[data-filled="true"],
+.nui-banner-btn:focus-visible .nui-banner-overlay[data-filled="true"] {
+  opacity: 1;
+}
+
+.nui-avatar-slot {
+  position: absolute;
+  left: 16px;
+  bottom: -28px;
+  z-index: 2;
+}
+.nui-avatar-btn {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid var(--nui-surface, var(--nui-bg));
+  background: var(--nui-input-bg);
+  color: var(--nui-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 150ms ease;
+}
+.nui-avatar-btn:hover { transform: scale(1.03); }
+.nui-avatar-btn:disabled { cursor: not-allowed; transform: none; }
+.nui-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.nui-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: transparent;
+  transition: background 150ms ease, color 150ms ease;
+}
+.nui-avatar-overlay[data-filled="false"] {
+  background: transparent;
+  color: var(--nui-muted);
+}
+.nui-avatar-btn:hover .nui-avatar-overlay,
+.nui-avatar-btn:focus-visible .nui-avatar-overlay {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+
+.nui-media-actions {
+  position: absolute;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+.nui-media-actions-banner {
+  top: 8px;
+  right: 8px;
+}
+.nui-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  transition: background 150ms ease, border-color 150ms ease;
+  backdrop-filter: blur(4px);
+}
+.nui-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.nui-media-url {
+  margin-top: 40px;
+}
+.nui-media-url-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 40px;
+  align-items: center;
+}
+.nui-media-url-row .nui-input { flex: 1; }
+.nui-media-url-row .nui-icon-btn {
+  background: var(--nui-input-bg);
+  border-color: var(--nui-border);
+  color: var(--nui-muted);
+  flex-shrink: 0;
+}
+.nui-media-url-row .nui-icon-btn:hover {
+  color: var(--nui-fg);
+  border-color: var(--nui-fg);
+}
+
+.nui-media-hint {
+  margin: 40px 0 0;
+  font-size: 11px;
+  color: var(--nui-muted);
+  text-align: center;
+}
+.nui-profile-media:has(.nui-media-url),
+.nui-profile-media:has(.nui-media-url-row) {
+  /* When a URL input is shown, the avatar still overlaps the banner — keep
+   * 40px clearance baked into the URL row's margin-top. */
+}
+
+/* QR helper buttons row */
+.nui-qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
+.nui-qr-actions > * { flex: 1; min-width: 140px; }
+.nui-qr-restart { align-self: center; }

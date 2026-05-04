@@ -107,6 +107,28 @@ export interface LoginWidgetProps {
   profileSetup?: boolean;
   /** Relays to publish the kind-0 to when `profileSetup` is on. */
   profileRelays?: string[];
+  /**
+   * When set, the "Generate" flow exposes an "Email me an encrypted backup"
+   * action on the backup screen. The widget NIP-49-encrypts the freshly
+   * generated nsec with a user-chosen password and hands the resulting
+   * `ncryptsec` to your `onSend` handler — you forward it to your own
+   * email API (e.g. Resend, Postmark) from a server route. The plaintext
+   * nsec never leaves the browser.
+   *
+   * Omit to disable the option entirely.
+   */
+  emailBackup?: {
+    /** Server-side dispatcher. Throw to display an inline error. */
+    onSend: (payload: {
+      email: string;
+      ncryptsec: string;
+      npub: string;
+    }) => Promise<void>;
+    /** Minimum password length enforced in the UI. Default 12. */
+    minPasswordLength?: number;
+    /** Optional copy override shown above the email/password inputs. */
+    description?: ReactNode;
+  };
   /** Default tab on the NIP-46 form: QR or paste-bunker-URI. Default "qr". */
   nip46Mode?: "qr" | "paste";
   /** Relays to advertise on the nostrconnect QR. */
@@ -161,6 +183,7 @@ export function LoginWidget({
   noExtensionCta,
   profileSetup = false,
   profileRelays,
+  emailBackup,
   nip46Mode = "qr",
   nip46Relays,
   nip46Metadata,
@@ -289,24 +312,26 @@ export function LoginWidget({
     <div className={cx("nui-widget", classes?.root)} style={styles?.root}>
       {slots?.header}
 
-      <div>
-        {title && (
-          <h2
-            className={cx("nui-widget-title", classes?.title)}
-            style={styles?.title}
-          >
-            {title}
-          </h2>
-        )}
-        {subtitle && (
-          <p
-            className={cx("nui-widget-subtitle", classes?.subtitle)}
-            style={styles?.subtitle}
-          >
-            {subtitle}
-          </p>
-        )}
-      </div>
+      {view.kind === "picker" && (
+        <div>
+          {title && (
+            <h2
+              className={cx("nui-widget-title", classes?.title)}
+              style={styles?.title}
+            >
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p
+              className={cx("nui-widget-subtitle", classes?.subtitle)}
+              style={styles?.subtitle}
+            >
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
 
       {slots?.beforeMethods}
 
@@ -510,6 +535,7 @@ export function LoginWidget({
           onBack={() => setView({ kind: "picker" })}
           profileSetup={profileSetup}
           {...(profileRelays ? { profileRelays } : {})}
+          {...(emailBackup ? { emailBackup } : {})}
         />
       )}
       {view.kind === "import" && (
