@@ -63,6 +63,28 @@ npm run build -w @nostr-wot/data
 npm run dev -w @nostr-wot/wot
 ```
 
+### Login playground
+
+Live sandbox for the `@nostr-wot/ui` login modal — every flag (methods, flat
+layout, recommended highlight, profile setup, NIP-46 mode, email backup, …)
+is wired to a sidebar control. Edits to `packages/ui/src/login/**` and
+`packages/signers/src/**` hot-reload via Vite aliases so changes apply
+without a rebuild.
+
+```bash
+npm install                                  # once
+npm run dev -w @nostr-wot/login-playground   # starts Vite on :5173
+```
+
+Open <http://localhost:5173>. If the port is busy from a prior run:
+
+```bash
+lsof -nP -iTCP:5173 -sTCP:LISTEN              # find the PID
+kill <pid>                                    # then re-run dev
+```
+
+Source: [`examples/login-playground`](./examples/login-playground).
+
 ## Publishing
 
 Each scoped package versions and publishes independently. The meta-package bumps in lock-step with the highest scoped version so installs stay coherent.

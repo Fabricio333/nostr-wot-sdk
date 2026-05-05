@@ -357,31 +357,44 @@ export function Nip46Method({
           )}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <label
-            htmlFor="nui-bunker-uri"
-            style={{ fontSize: 13, color: "var(--nui-muted)" }}
-          >
+        <div className="nui-form" style={{ gap: 10 }}>
+          <label className="nui-field-label" htmlFor="nui-bunker-uri">
             Paste a bunker:// URI from your remote signer
           </label>
-          <input
-            id="nui-bunker-uri"
-            className="nui-input"
-            value={uri}
-            onChange={(e) => setUri(e.target.value)}
-            placeholder="bunker://abc...?relay=wss://..."
-            autoFocus
-          />
+          <div className="nui-input-with-action">
+            <input
+              id="nui-bunker-uri"
+              className="nui-input"
+              value={uri}
+              onChange={(e) => setUri(e.target.value)}
+              placeholder="bunker://abc...?relay=wss://..."
+              autoFocus
+            />
+            <button
+              type="button"
+              className="nui-pill nui-pill-secondary"
+              onClick={async () => {
+                try {
+                  const text = await navigator.clipboard?.readText();
+                  if (text) setUri(text.trim());
+                } catch {
+                  /* clipboard blocked — user can still type/paste manually */
+                }
+              }}
+              title="Paste from clipboard"
+            >
+              Paste
+            </button>
+          </div>
           <button
             type="button"
-            className="nui-login-button"
+            className="nui-pill nui-pill-primary"
             onClick={connectPaste}
             disabled={pasting || !uri}
-            style={{ width: "100%", justifyContent: "center" }}
           >
             {pasting ? (
               <>
-                Connecting <span className="nui-spinner" />
+                <span className="nui-spinner-sm" /> Connecting…
               </>
             ) : (
               "Connect"

@@ -310,18 +310,32 @@
 }
 .nui-modal-close {
   position: absolute;
-  right: calc(var(--nui-space) * 1.5);
+  right: calc(var(--nui-space) * 1.25);
   top: calc(var(--nui-space) * 1.25);
+  width: 36px;
+  height: 36px;
+  z-index: 5;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--nui-muted);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--nui-card-radius);
+  padding: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
 }
-.nui-modal-close:hover { color: var(--nui-fg); }
+.nui-modal-close:hover {
+  color: var(--nui-fg);
+  border-color: var(--nui-border);
+  background: var(--nui-input-bg);
+}
+/* Reserve space at the top of the widget so titles don't slide under the
+ * close button. */
+.nui-modal .nui-widget-title { padding-right: 40px; }
 
 /* ─── Login widget ─────────────────────────────────────────── */
 .nui-widget {
@@ -1079,6 +1093,18 @@
 .nui-profile-media:has(.nui-media-url-row) {
   /* When a URL input is shown, the avatar still overlaps the banner — keep
    * 40px clearance baked into the URL row's margin-top. */
+}
+
+/* Input + inline action button (e.g. Paste from clipboard) */
+.nui-input-with-action {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.nui-input-with-action .nui-input { flex: 1; min-width: 0; }
+.nui-input-with-action .nui-pill {
+  flex-shrink: 0;
+  padding: 0 16px;
 }
 
 /* QR helper buttons row */

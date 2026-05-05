@@ -43,24 +43,29 @@
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  z-index: 5;
   border-radius: 999px;
   border: 1px solid var(--lc-border);
   background: var(--lc-card);
   color: var(--lc-muted);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 150ms ease;
+  padding: 0;
 }
 .pg-modal-close:hover {
   color: var(--lc-white);
   border-color: var(--lc-border-strong);
 }
+/* Reserve title space inside the playground modal so long titles don't
+ * slide under the close button. */
+.pg-modal-card .nui-widget-title { padding-right: 44px; }
 
 :root {
   color-scheme: dark;
