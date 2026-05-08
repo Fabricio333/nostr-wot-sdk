@@ -22,12 +22,21 @@ const abbreviate = (s: string, head = 10, tail = 8) =>
 
 export interface GenerateMethodProps {
   onError: (msg: string) => void;
-  onAttached: (signer: NostrSigner, pubkey: string) => void | Promise<void>;
-  onBack: () => void;
+  onAttached: (
+    signer: NostrSigner,
+    pubkey: string,
+    extra?: { nsec?: string },
+  ) => void | Promise<void>;
+  /** Pass undefined to hide the back button (used when the picker is unreachable). */
+  onBack?: () => void;
   /** When true, asks for name/about/picture and publishes a kind-0 after the user backs up their key. */
   profileSetup?: boolean;
   /** Relays to publish the profile to. Defaults to a small built-in set. */
   profileRelays?: string[];
+  /** Show the "Remember on this device" toggle. Default true.
+   *  Set false when the host has its own session restoration (so the SDK's
+   *  localStorage write would be redundant or misleading). */
+  showRememberToggle?: boolean;
   /** Optional encrypted-backup-via-email config. Adds a button on the
    *  backup screen that NIP-49-encrypts the nsec and hands the
    *  `ncryptsec` to the consumer's server-side dispatcher. */
@@ -51,6 +60,7 @@ export function GenerateMethod({
   onBack,
   profileSetup = false,
   profileRelays = DEFAULT_PROFILE_RELAYS,
+  showRememberToggle = true,
   emailBackup,
 }: GenerateMethodProps) {
   const storage = useSignerStorage();
@@ -143,7 +153,7 @@ export function GenerateMethod({
       }
     }
     const signer = new PrivateKeySigner(generated.sk);
-    await onAttached(signer, generated.pk);
+    await onAttached(signer, generated.pk, { nsec: generated.nsec });
   };
 
   const continueToNext = async () => {
@@ -224,7 +234,12 @@ export function GenerateMethod({
       emailPassword.length >= minPasswordLength;
     return (
       <div className="nui-form">
-        <button type="button" className="nui-back-pill" onClick={() => setStep("backup")}>
+        <button
+          type="button"
+          className="nui-back-pill"
+          onClick={() => setStep("backup")}
+          aria-label="Back to backup step"
+        >
           ← Back
         </button>
         <div className="nui-form-head">
@@ -292,7 +307,12 @@ export function GenerateMethod({
   if (step === "profile") {
     return (
       <div className="nui-form">
-        <button type="button" className="nui-back-pill" onClick={() => setStep("backup")}>
+        <button
+          type="button"
+          className="nui-back-pill"
+          onClick={() => setStep("backup")}
+          aria-label="Back to backup step"
+        >
           ← Back
         </button>
 
@@ -378,9 +398,16 @@ export function GenerateMethod({
 
   return (
     <div className="nui-form">
-      <button type="button" className="nui-back-pill" onClick={onBack}>
-        ← Back
-      </button>
+      {onBack && (
+        <button
+          type="button"
+          className="nui-back-pill"
+          onClick={onBack}
+          aria-label="Back"
+        >
+          ← Back
+        </button>
+      )}
 
       <div className="nui-form-head">
         <h3 className="nui-form-title">Your new key</h3>
@@ -444,14 +471,16 @@ export function GenerateMethod({
         </span>
       </label>
 
-      <label className="nui-toggle-row">
-        <input
-          type="checkbox"
-          checked={remember}
-          onChange={(e) => setRemember(e.target.checked)}
-        />
-        Remember on this device
-      </label>
+      {showRememberToggle && (
+        <label className="nui-toggle-row">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          Stay signed in on this device
+        </label>
+      )}
 
       <button
         type="button"

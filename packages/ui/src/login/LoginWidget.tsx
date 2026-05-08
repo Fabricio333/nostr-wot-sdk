@@ -53,6 +53,20 @@ export interface LoginWidgetProps {
     signer: NostrSigner;
     pubkey: string;
     method: LoginMethodId;
+    /** Set for `generate` and `import` methods — the freshly minted /
+     *  pasted nsec the signer was built from. Hosts that bridge to a
+     *  separate session layer (e.g. a custom Nostr-relay client) can
+     *  use this directly instead of reading the SDK's localStorage. */
+    nsec?: string;
+    /** Set for `nip46` — a `bunker://` URI usable to re-pair the same
+     *  remote signer. For the QR / nostrconnect flow this is reconstructed
+     *  from the bunker pubkey + relays returned by the handshake. */
+    bunkerUri?: string;
+    /** Set for `nip46` — the local client nsec the SDK paired with. Hosts
+     *  that bridge to their own NIP-46 implementation MUST reuse this
+     *  client identity, otherwise the remote signer rejects subsequent
+     *  connect requests from a different client pubkey. */
+    clientNsec?: string;
   }) => Promise<void> | void;
   /** Fire-and-forget callback fired after `onLogin` resolves. */
   onSuccess?: () => void;
@@ -107,6 +121,10 @@ export interface LoginWidgetProps {
   profileSetup?: boolean;
   /** Relays to publish the kind-0 to when `profileSetup` is on. */
   profileRelays?: string[];
+  /** Show the "Stay signed in on this device" toggle in the Generate
+   *  and Import flows. Default true. Set false when the host has its
+   *  own session restoration. */
+  showRememberToggle?: boolean;
   /**
    * When set, the "Generate" flow exposes an "Email me an encrypted backup"
    * action on the backup screen. The widget NIP-49-encrypts the freshly
@@ -183,6 +201,7 @@ export function LoginWidget({
   noExtensionCta,
   profileSetup = false,
   profileRelays,
+  showRememberToggle = true,
   emailBackup,
   nip46Mode = "qr",
   nip46Relays,
@@ -195,12 +214,27 @@ export function LoginWidget({
   const logout = useLogout();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // When the host pre-scopes us to a single sub-view method (nip46/generate/
+  // import), open straight into the flow — the picker would just be a
+  // single button echoing the host's own selection. nip07 stays on the
+  // picker because the click *is* the auth (browsers require user activation).
+  const initialView = ((): typeof viewInit => {
+    const viewInit: { kind: "picker" } | { kind: "nip46-form" } | { kind: "generate" } | { kind: "import" } = { kind: "picker" };
+    if (methods.length === 1) {
+      const only = methods[0];
+      if (only === "nip46") return { kind: "nip46-form" };
+      if (only === "generate") return { kind: "generate" };
+      if (only === "import") return { kind: "import" };
+    }
+    return viewInit;
+  })();
+  const canReturnToPicker = methods.length > 1;
   const [view, setView] = useState<
     | { kind: "picker" }
     | { kind: "nip46-form" }
     | { kind: "generate" }
     | { kind: "import" }
-  >({ kind: "picker" });
+  >(initialView);
   const [showAdvanced, setShowAdvanced] = useState(false);
   // Re-poll for window.nostr — extensions sometimes inject after first paint.
   const [hasNip07, setHasNip07] = useState<boolean>(() => isNip07Available());
@@ -248,6 +282,7 @@ export function LoginWidget({
     signer: NostrSigner,
     pubkey: string,
     method: LoginMethodId,
+    extra?: { nsec?: string; bunkerUri?: string; clientNsec?: string },
   ) => {
     setBusy(true);
     setError(null);
@@ -269,7 +304,14 @@ export function LoginWidget({
       }
 
       if (onLogin) {
-        await onLogin({ signer, pubkey, method });
+        await onLogin({
+          signer,
+          pubkey,
+          method,
+          ...(extra?.nsec ? { nsec: extra.nsec } : {}),
+          ...(extra?.bunkerUri ? { bunkerUri: extra.bunkerUri } : {}),
+          ...(extra?.clientNsec ? { clientNsec: extra.clientNsec } : {}),
+        });
       }
 
       onSuccess?.();
@@ -286,9 +328,13 @@ export function LoginWidget({
   };
 
   const attachedFor = (method: LoginMethodId) =>
-    async (signer: NostrSigner, pubkey: string) => {
+    async (
+      signer: NostrSigner,
+      pubkey: string,
+      extra?: { nsec?: string; bunkerUri?: string; clientNsec?: string },
+    ) => {
       try {
-        await handleAttached(signer, pubkey, method);
+        await handleAttached(signer, pubkey, method, extra);
       } catch {
         /* error already surfaced via onErr; swallow so methods don't double-handle */
       }
@@ -522,7 +568,7 @@ export function LoginWidget({
           defaultMode={nip46Mode}
           onError={onErr}
           onAttached={attachedFor("nip46")}
-          onBack={() => setView({ kind: "picker" })}
+          {...(canReturnToPicker ? { onBack: () => setView({ kind: "picker" }) } : {})}
           {...(nip46Relays ? { nostrConnectRelays: nip46Relays } : {})}
           {...(nip46Metadata ? { metadata: nip46Metadata } : {})}
           {...(nip46Perms ? { perms: nip46Perms } : {})}
@@ -532,8 +578,9 @@ export function LoginWidget({
         <GenerateMethod
           onError={onErr}
           onAttached={attachedFor("generate")}
-          onBack={() => setView({ kind: "picker" })}
+          {...(canReturnToPicker ? { onBack: () => setView({ kind: "picker" }) } : {})}
           profileSetup={profileSetup}
+          showRememberToggle={showRememberToggle}
           {...(profileRelays ? { profileRelays } : {})}
           {...(emailBackup ? { emailBackup } : {})}
         />
@@ -542,7 +589,8 @@ export function LoginWidget({
         <ImportMethod
           onError={onErr}
           onAttached={attachedFor("import")}
-          onBack={() => setView({ kind: "picker" })}
+          showRememberToggle={showRememberToggle}
+          {...(canReturnToPicker ? { onBack: () => setView({ kind: "picker" }) } : {})}
         />
       )}
 

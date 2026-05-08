@@ -102,13 +102,24 @@ function nsecToBytes(nsec: string): Uint8Array {
 
 export interface Nip46MethodProps {
   onError: (msg: string) => void;
-  onAttached: (signer: NostrSigner, pubkey: string) => void | Promise<void>;
+  onAttached: (
+    signer: NostrSigner,
+    pubkey: string,
+    extra?: { bunkerUri?: string; clientNsec?: string },
+  ) => void | Promise<void>;
   onBack?: () => void;
   inline?: boolean;
   defaultMode?: "qr" | "paste";
   nostrConnectRelays?: string[];
   metadata?: { name?: string; url?: string; description?: string; image?: string };
   perms?: string;
+}
+
+/** Build a `bunker://` URI from a nostrconnect handshake result. The URI is
+ *  what most consumer-facing APIs accept for re-pairing. */
+function nostrConnectBunkerUri(bunkerPubkey: string, relays: string[]): string {
+  const params = relays.map((r) => `relay=${encodeURIComponent(r)}`).join("&");
+  return `bunker://${bunkerPubkey}${params ? `?${params}` : ""}`;
 }
 
 export function Nip46Method({
@@ -171,7 +182,9 @@ export function Nip46Method({
           clientNsec: signer.exportClientNsec(),
         });
         const pubkey = await signer.getPublicKey();
-        await onAttached(signer, pubkey);
+        const bunkerUri = nostrConnectBunkerUri(signer.bunkerPubkey, signer.relays);
+        const clientNsec = signer.exportClientNsec();
+        await onAttached(signer, pubkey, { bunkerUri, clientNsec });
       } catch (err) {
         clearTimeout(slowTimer);
         if (handleRef.current === handle) {
@@ -221,7 +234,7 @@ export function Nip46Method({
       const clientNsec = signer.exportClientNsec();
       await writePersistedTo(storage, { kind: "bunker", uri: trimmed, clientNsec });
       const pubkey = await signer.getPublicKey();
-      await onAttached(signer, pubkey);
+      await onAttached(signer, pubkey, { bunkerUri: trimmed, clientNsec });
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
     } finally {

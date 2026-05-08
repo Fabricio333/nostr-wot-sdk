@@ -10,10 +10,18 @@ export function ImportMethod({
   onError,
   onAttached,
   onBack,
+  showRememberToggle = true,
 }: {
   onError: (msg: string) => void;
-  onAttached: (signer: NostrSigner, pubkey: string) => void | Promise<void>;
-  onBack: () => void;
+  onAttached: (
+    signer: NostrSigner,
+    pubkey: string,
+    extra?: { nsec?: string },
+  ) => void | Promise<void>;
+  /** Pass undefined to hide the back button (used when picker is unreachable). */
+  onBack?: () => void;
+  /** Show the "Remember on this device" toggle. Default true. */
+  showRememberToggle?: boolean;
 }) {
   const storage = useSignerStorage();
   const [value, setValue] = useState("");
@@ -51,7 +59,7 @@ export function ImportMethod({
         }
       }
       const pubkey = await signer.getPublicKey();
-      await onAttached(signer, pubkey);
+      await onAttached(signer, pubkey, { nsec });
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -61,9 +69,16 @@ export function ImportMethod({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <button type="button" className="nui-back" onClick={onBack}>
-        ← Back
-      </button>
+      {onBack && (
+        <button
+          type="button"
+          className="nui-back"
+          onClick={onBack}
+          aria-label="Back"
+        >
+          ← Back
+        </button>
+      )}
 
       <p className="nui-warning">
         ⚠️ Pasting your private key into a web page is risky. Prefer a browser
@@ -79,22 +94,24 @@ export function ImportMethod({
         onChange={(e) => setValue(e.target.value)}
       />
 
-      <label
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          fontSize: 13,
-          color: "var(--nui-muted)",
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={remember}
-          onChange={(e) => setRemember(e.target.checked)}
-        />
-        Remember on this device
-      </label>
+      {showRememberToggle && (
+        <label
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            fontSize: 13,
+            color: "var(--nui-muted)",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          Stay signed in on this device
+        </label>
+      )}
 
       <button
         type="button"
