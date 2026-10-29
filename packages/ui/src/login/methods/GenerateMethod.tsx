@@ -37,6 +37,8 @@ export interface GenerateMethodProps {
   /** When true, the key file (a .txt with the nsec, which `ImportMethod` reads back) is the
    *  step's main action and Continue stays off until it has been downloaded. Default false. */
   requireKeyDownload?: boolean;
+  /** Names the key file `<prefix>-<npub>.txt` (an app's name, say). Default `nostr-key-<npub start>.txt`. */
+  keyFilePrefix?: string;
 }
 
 const DEFAULT_PROFILE_RELAYS = [
@@ -53,6 +55,7 @@ export function GenerateMethod({
   profileSetup = false,
   profileRelays = DEFAULT_PROFILE_RELAYS,
   requireKeyDownload = false,
+  keyFilePrefix,
 }: GenerateMethodProps) {
   const storage = useSignerStorage();
   const [acknowledged, setAcknowledged] = useState(false);
@@ -80,7 +83,7 @@ export function GenerateMethod({
   };
 
   const download = () => {
-    downloadKeyFile(generated.nsec, generated.npub);
+    downloadKeyFile(generated.nsec, generated.npub, keyFilePrefix);
     setDownloaded(true);
   };
 

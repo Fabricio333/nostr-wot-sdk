@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 import { LoginWidget } from '../src/login/LoginWidget';
 import { NostrSessionProvider } from '../src/session-shell';
-import { extractSecretKey, keyFileText } from '../src/login/key-file';
+import { extractSecretKey, keyFileName, keyFileText } from '../src/login/key-file';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); delete (window as { nostr?: unknown }).nostr; });
 
@@ -49,6 +49,14 @@ describe('create-first layout', () => {
     fireEvent.change(input, { target: { files: [file] } });
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
     expect(onLogin.mock.calls[0][0]).toMatchObject({ method: 'import', nsec, pubkey: getPublicKey(sk) });
+  });
+});
+
+describe('keyFileName', () => {
+  it('carries the app name and the whole npub when given a prefix', () => {
+    const npub = nip19.npubEncode(getPublicKey(generateSecretKey()));
+    expect(keyFileName(npub, 'obelisk-sky')).toBe(`obelisk-sky-${npub}.txt`);
+    expect(keyFileName(npub)).toBe(`nostr-key-${npub.slice(0, 12)}.txt`);
   });
 });
 

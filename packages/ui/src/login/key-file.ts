@@ -9,17 +9,18 @@ export function keyFileText(nsec: string, npub: string): string {
   return `Nostr private key (nsec)\n\n${nsec}\n\nPublic key (npub)\n\n${npub}\n\nKEEP THIS FILE PRIVATE. Anyone with the nsec can use your account.\nTo log in again, upload this file or paste the nsec.\n`;
 }
 
-export function keyFileName(npub: string): string {
-  return `nostr-key-${npub.slice(0, 12)}.txt`;
+/** `nostr-key-npub1abcdefg.txt`; with a `prefix` (the app's name), `<prefix>-<whole npub>.txt`. */
+export function keyFileName(npub: string, prefix?: string): string {
+  return prefix ? `${prefix}-${npub}.txt` : `nostr-key-${npub.slice(0, 12)}.txt`;
 }
 
 /** Saves the key file through a temporary link. */
-export function downloadKeyFile(nsec: string, npub: string): void {
+export function downloadKeyFile(nsec: string, npub: string, prefix?: string): void {
   const blob = new Blob([keyFileText(nsec, npub)], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = keyFileName(npub);
+  a.download = keyFileName(npub, prefix);
   document.body.appendChild(a);
   a.click();
   a.remove();

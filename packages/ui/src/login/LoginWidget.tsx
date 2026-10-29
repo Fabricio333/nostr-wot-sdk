@@ -104,6 +104,8 @@ export interface LoginWidgetProps {
   /** Forwarded to the generate flow: the key file must be downloaded before
    *  Continue. Default false. */
   requireKeyDownload?: boolean;
+  /** Forwarded to the generate flow: the key file is named `<prefix>-<npub>.txt`. */
+  keyFilePrefix?: string;
   /** Forwarded to the import flow: offer "Upload key file". Default true. */
   allowKeyFile?: boolean;
   /**
@@ -209,6 +211,7 @@ export function LoginWidget({
   existingAccountLabel = "I already have an account",
   hideUnavailableNip07 = false,
   requireKeyDownload = false,
+  keyFilePrefix,
   allowKeyFile = true,
   showRememberToggle: _showRememberToggle = true,
   methodIcons,
@@ -604,6 +607,7 @@ export function LoginWidget({
           onBack={() => setView({ kind: "picker" })}
           profileSetup={profileSetup}
           requireKeyDownload={requireKeyDownload}
+          {...(keyFilePrefix ? { keyFilePrefix } : {})}
           {...(profileRelays ? { profileRelays } : {})}
         />
       )}
