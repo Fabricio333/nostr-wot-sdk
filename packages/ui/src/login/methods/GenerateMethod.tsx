@@ -15,6 +15,7 @@ import {
   type SignerStorage,
 } from "../../signer-storage";
 import { useSignerStorage } from "../../signer-storage-context";
+import { downloadKeyFile } from "../key-file";
 
 export interface GenerateMethodExtras {
   /** The freshly generated nsec (bech32). */
@@ -33,6 +34,9 @@ export interface GenerateMethodProps {
   profileSetup?: boolean;
   /** Relays to publish the profile to. Defaults to a small built-in set. */
   profileRelays?: string[];
+  /** When true, the key file (a .txt with the nsec, which `ImportMethod` reads back) is the
+   *  step's main action and Continue stays off until it has been downloaded. Default false. */
+  requireKeyDownload?: boolean;
 }
 
 const DEFAULT_PROFILE_RELAYS = [
@@ -48,9 +52,11 @@ export function GenerateMethod({
   onBack,
   profileSetup = false,
   profileRelays = DEFAULT_PROFILE_RELAYS,
+  requireKeyDownload = false,
 }: GenerateMethodProps) {
   const storage = useSignerStorage();
   const [acknowledged, setAcknowledged] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [remember, setRemember] = useState(false);
   const [step, setStep] = useState<"backup" | "profile">("backup");
   const [publishing, setPublishing] = useState(false);
@@ -74,16 +80,8 @@ export function GenerateMethod({
   };
 
   const download = () => {
-    const blob = new Blob(
-      [`Nostr private key (nsec)\n\n${generated.nsec}\n\nPublic key (npub)\n\n${generated.npub}\n\nKEEP THIS FILE PRIVATE.\n`],
-      { type: "text/plain" },
-    );
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `nostr-key-${generated.npub.slice(0, 12)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadKeyFile(generated.nsec, generated.npub);
+    setDownloaded(true);
   };
 
   const attach = async () => {
@@ -252,11 +250,30 @@ export function GenerateMethod({
           <button type="button" className="nui-back" onClick={() => copy(generated.nsec)}>
             Copy nsec
           </button>
-          <button type="button" className="nui-back" onClick={download}>
-            Download .txt
-          </button>
+          {!requireKeyDownload && (
+            <button type="button" className="nui-back" onClick={download}>
+              Download .txt
+            </button>
+          )}
         </div>
       </div>
+
+      {requireKeyDownload && (
+        <button
+          type="button"
+          className="nui-login-button nui-key-download"
+          data-done={downloaded}
+          onClick={download}
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {downloaded ? "✓ Key file saved (download again)" : "⬇ Download your key file"}
+        </button>
+      )}
+      {requireKeyDownload && !downloaded && (
+        <p className="nui-key-download-hint" style={{ margin: 0, fontSize: 13, color: "var(--nui-muted)" }}>
+          Save it somewhere safe. To log in again, upload it or paste the nsec inside.
+        </p>
+      )}
 
       <label className="nui-warning" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
         <input
@@ -292,7 +309,7 @@ export function GenerateMethod({
         type="button"
         className="nui-login-button"
         onClick={continueToNext}
-        disabled={!acknowledged}
+        disabled={!acknowledged || (requireKeyDownload && !downloaded)}
         style={{ width: "100%", justifyContent: "center" }}
       >
         Continue

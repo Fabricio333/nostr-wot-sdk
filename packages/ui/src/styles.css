@@ -233,6 +233,20 @@
   border-color: var(--nui-primary);
   background: var(--nui-input-bg);
 }
+/* "Create a new account" leading the create-first layout: the primary colour. */
+.nui-method-button.nui-method-primary {
+  background: var(--nui-primary);
+  border-color: var(--nui-primary);
+  color: var(--nui-primary-fg);
+}
+.nui-method-button.nui-method-primary:hover { background: var(--nui-primary-hover); }
+.nui-method-button.nui-method-primary .nui-method-hint { color: inherit; opacity: 0.8; }
+/* The new key's file, once saved: quieter, still there to save again. */
+.nui-key-download[data-done="true"] {
+  background: var(--nui-input-bg);
+  border-color: var(--nui-border);
+  color: var(--nui-fg);
+}
 .nui-method-button[data-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;

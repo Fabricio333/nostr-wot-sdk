@@ -46,6 +46,7 @@ export {
   ImportMethod,
   type ImportMethodExtras,
 } from "./login/methods/ImportMethod";
+export { downloadKeyFile, extractSecretKey, keyFileName, keyFileText } from "./login/key-file";
 
 // Pluggable signer storage — apps with stronger at-rest requirements
 // (encrypted IDB, WebAuthn-pinned KEK, etc.) implement this interface.

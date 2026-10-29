@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   isNip07Available,
   type NostrSigner,
@@ -86,6 +86,27 @@ export interface LoginWidgetProps {
    */
   flatLayout?: boolean;
   /**
+   * `"create-first"`: "Create a new account" leads as the main button, then a
+   * divider (`existingAccountLabel`) and the ways in for an existing account, in
+   * `methods` order (nip07, import, nip46 by default). No "Advanced" disclosure.
+   * Overrides `flatLayout`. Default `"default"`.
+   */
+  layout?: "default" | "create-first";
+  /** The divider above the existing-account methods in the `"create-first"` layout.
+   *  Default "I already have an account". */
+  existingAccountLabel?: ReactNode;
+  /**
+   * Leave the browser-extension method out when no `window.nostr` is there (it is
+   * checked again for a few seconds, since extensions inject late, and when the
+   * window regains focus). The `noExtensionCta` still shows. Default false.
+   */
+  hideUnavailableNip07?: boolean;
+  /** Forwarded to the generate flow: the key file must be downloaded before
+   *  Continue. Default false. */
+  requireKeyDownload?: boolean;
+  /** Forwarded to the import flow: offer "Upload key file". Default true. */
+  allowKeyFile?: boolean;
+  /**
    * Reserved for future remember-me UI; currently no-op. Accepted so
    * consumers can pre-thread the prop. Default true.
    */
@@ -128,6 +149,26 @@ export interface LoginWidgetProps {
 }
 
 const DEFAULT_METHODS: LoginMethodId[] = ["nip07", "nip46", "generate", "import"];
+const CREATE_FIRST_METHODS: LoginMethodId[] = ["generate", "nip07", "import", "nip46"];
+
+/** Whether a NIP-07 signer is on the page, watched for a few seconds after
+ *  mount (extensions inject late) and again whenever the window regains focus. */
+function useNip07Available(): boolean {
+  const [available, setAvailable] = useState(() => isNip07Available());
+  useEffect(() => {
+    if (available || typeof window === "undefined") return;
+    const check = () => { if (isNip07Available()) setAvailable(true); };
+    const timer = window.setInterval(check, 250);
+    const stop = window.setTimeout(() => window.clearInterval(timer), 4000);
+    window.addEventListener("focus", check);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(stop);
+      window.removeEventListener("focus", check);
+    };
+  }, [available]);
+  return available;
+}
 
 const DEFAULT_NO_EXTENSION_CTA: ReactNode = (
   <a
@@ -156,7 +197,7 @@ export function LoginWidget({
   title = "Sign in to Nostr",
   subtitle,
   slots,
-  methods = DEFAULT_METHODS,
+  methods: methodsProp,
   onLogin,
   onSuccess,
   onError,
@@ -164,6 +205,11 @@ export function LoginWidget({
   rollbackOnAuthFailure = false,
   hideAdvanced = false,
   flatLayout = false,
+  layout = "default",
+  existingAccountLabel = "I already have an account",
+  hideUnavailableNip07 = false,
+  requireKeyDownload = false,
+  allowKeyFile = true,
   showRememberToggle: _showRememberToggle = true,
   methodIcons,
   noExtensionCta,
@@ -179,6 +225,11 @@ export function LoginWidget({
 }: LoginWidgetProps) {
   const login = useLogin();
   const logout = useLogout();
+  const createFirst = layout === "create-first";
+  const nip07Available = useNip07Available();
+  const methods = (methodsProp ?? (createFirst ? CREATE_FIRST_METHODS : DEFAULT_METHODS))
+    .filter((m) => m !== "nip07" || nip07Available || !hideUnavailableNip07);
+  const wantsNip07 = (methodsProp ?? DEFAULT_METHODS).includes("nip07");
   // Reserved for future remember-me UI; currently a no-op flag.
   void _showRememberToggle;
   const [error, setError] = useState<string | null>(null);
@@ -265,6 +316,42 @@ export function LoginWidget({
       }
     };
 
+  const methodButton = (m: LoginMethodId, primary = false) => {
+    if (m === "nip07") {
+      return (
+        <Nip07Method
+          key="nip07"
+          onError={onErr}
+          onAttached={attachedFor("nip07")}
+          {...(methodIcons?.nip07 !== undefined ? { icon: methodIcons.nip07 } : {})}
+        />
+      );
+    }
+    const words = {
+      nip46: { icon: methodIcons?.nip46 ?? "🔐", label: "Remote signer (bunker)", hint: "NIP-46 — Amber, Nsec.app", view: "nip46-form" as const },
+      generate: { icon: methodIcons?.generate ?? "✨", label: "Create a new account", hint: "Generates a fresh keypair on this device", view: "generate" as const },
+      import: createFirst
+        ? { icon: methodIcons?.import ?? "🔑", label: "Private key or key file", hint: "Paste your nsec, or upload the key file you saved", view: "import" as const }
+        : { icon: methodIcons?.import ?? "🔑", label: "Paste private key", hint: "nsec or 64-char hex — risky in browsers", view: "import" as const },
+    }[m];
+    return (
+      <button
+        key={m}
+        type="button"
+        className={cx("nui-method-button", primary && "nui-method-primary", classes?.method)}
+        style={styles?.method}
+        onClick={() => setView({ kind: words.view })}
+      >
+        <span className={cx("nui-method-icon", classes?.methodIcon)} aria-hidden>{words.icon}</span>
+        <span className={cx("nui-method-text", classes?.methodText)}>
+          <span className={cx("nui-method-label", classes?.methodLabel)}>{words.label}</span>
+          <span className={cx("nui-method-hint", classes?.methodHint)}>{words.hint}</span>
+        </span>
+      </button>
+    );
+  };
+  const existingMethods = methods.filter((m) => m !== "generate");
+
   const primaryMethods = methods.filter((m) => m === "nip07" || m === "nip46");
   const advancedMethods = methods.filter((m) => m === "generate" || m === "import");
 
@@ -320,7 +407,25 @@ export function LoginWidget({
         </div>
       )}
 
-      {view.kind === "picker" && (
+      {view.kind === "picker" && createFirst && (
+        <>
+          <div
+            className={cx("nui-widget-methods", "nui-create-first", classes?.methods)}
+            style={{ display: "flex", flexDirection: "column", gap: 8, ...styles?.methods }}
+          >
+            {methods.includes("generate") && methodButton("generate", true)}
+            {methods.includes("generate") && existingMethods.length > 0 && (
+              <div className={cx("nui-divider", classes?.divider)} style={styles?.divider}>
+                {existingAccountLabel}
+              </div>
+            )}
+            {existingMethods.map((m) => methodButton(m))}
+          </div>
+          {!nip07Available && wantsNip07 && ctaToRender}
+        </>
+      )}
+
+      {view.kind === "picker" && !createFirst && (
         <>
           <div
             className={cx("nui-widget-methods", classes?.methods)}
@@ -475,7 +580,7 @@ export function LoginWidget({
             </>
           )}
 
-          {!isNip07Available() && primaryMethods.includes("nip07") && ctaToRender}
+          {!nip07Available && wantsNip07 && ctaToRender}
         </>
       )}
 
@@ -498,6 +603,7 @@ export function LoginWidget({
           onAttached={attachedFor("generate")}
           onBack={() => setView({ kind: "picker" })}
           profileSetup={profileSetup}
+          requireKeyDownload={requireKeyDownload}
           {...(profileRelays ? { profileRelays } : {})}
         />
       )}
@@ -506,6 +612,7 @@ export function LoginWidget({
           onError={onErr}
           onAttached={attachedFor("import")}
           onBack={() => setView({ kind: "picker" })}
+          allowKeyFile={allowKeyFile}
         />
       )}
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { nip19 } from "nostr-tools";
+import { useRef, useState } from "react";
 import { PrivateKeySigner, type NostrSigner } from "nostr-wot-sdk/signers";
 import { SIGNER_STORAGE_KEY_NSEC } from "../../signer-storage";
 import { useSignerStorage } from "../../signer-storage-context";
+import { extractSecretKey } from "../key-file";
 
 export interface ImportMethodExtras {
   /** The imported nsec (bech32). When the user pasted hex, this is the
@@ -16,6 +16,7 @@ export function ImportMethod({
   onError,
   onAttached,
   onBack,
+  allowKeyFile = true,
 }: {
   onError: (msg: string) => void;
   onAttached: (
@@ -24,34 +25,24 @@ export function ImportMethod({
     extras?: ImportMethodExtras,
   ) => void | Promise<void>;
   onBack: () => void;
+  /** Offer "Upload key file" next to the field: a .txt holding the nsec, such as the
+   *  one `GenerateMethod` downloads. Default true. */
+  allowKeyFile?: boolean;
 }) {
   const storage = useSignerStorage();
   const [value, setValue] = useState("");
   const [remember, setRemember] = useState(false);
   const [busy, setBusy] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
-  const submit = async () => {
-    const trimmed = value.trim();
+  const submit = async (raw: string = value) => {
+    const trimmed = raw.trim();
     if (!trimmed) return;
     setBusy(true);
     try {
-      let secretKey: Uint8Array;
-      let nsec: string;
-      if (trimmed.startsWith("nsec1")) {
-        const decoded = nip19.decode(trimmed);
-        if (decoded.type !== "nsec") throw new Error("Invalid nsec");
-        secretKey = decoded.data;
-        nsec = trimmed;
-      } else if (/^[0-9a-f]{64}$/i.test(trimmed)) {
-        const bytes = new Uint8Array(32);
-        for (let i = 0; i < 32; i++) {
-          bytes[i] = parseInt(trimmed.slice(i * 2, i * 2 + 2), 16);
-        }
-        secretKey = bytes;
-        nsec = nip19.nsecEncode(bytes);
-      } else {
-        throw new Error("Paste an nsec1… or a 64-char hex private key.");
-      }
+      const key = extractSecretKey(trimmed);
+      if (!key) throw new Error("Paste an nsec1… or a 64-char hex private key.");
+      const { secretKey, nsec } = key;
       const signer = new PrivateKeySigner(secretKey);
       if (remember) {
         try {
@@ -87,7 +78,42 @@ export function ImportMethod({
         placeholder="nsec1… or 64-char hex"
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
       />
+
+      {allowKeyFile && (
+        <>
+          <div className="nui-divider">or</div>
+          <button
+            type="button"
+            className="nui-method-button nui-key-file-button"
+            onClick={() => fileInput.current?.click()}
+            disabled={busy}
+          >
+            <span className="nui-method-icon" aria-hidden>📄</span>
+            <span className="nui-method-text">
+              <span className="nui-method-label">Upload key file</span>
+              <span className="nui-method-hint">The .txt you saved when you created the account</span>
+            </span>
+          </button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept=".txt,text/plain"
+            hidden
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              if (file.size > 64 * 1024) { onError("That file is too big to be a key file."); return; }
+              void file.text().then((text) => {
+                if (!extractSecretKey(text)) { onError("No private key (nsec) found in that file."); return; }
+                void submit(text);
+              }, () => onError("Couldn't read that file."));
+            }}
+          />
+        </>
+      )}
 
       <label
         style={{
@@ -109,7 +135,7 @@ export function ImportMethod({
       <button
         type="button"
         className="nui-login-button"
-        onClick={submit}
+        onClick={() => void submit()}
         disabled={busy || !value}
         style={{ width: "100%", justifyContent: "center" }}
       >
