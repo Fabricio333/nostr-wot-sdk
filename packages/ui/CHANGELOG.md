@@ -1,5 +1,11 @@
 # @nostr-wot/ui
 
+## 2.1.0
+
+### Minor Changes
+
+- [`bca7840`](https://github.com/nostr-wot/nostr-wot-sdk/commit/bca784043eeeb2d9e7091ef868e1d316f4798ea3) - Login widget: a `layout="create-first"` option that leads with "Create a new account" and puts the ways in for an existing account under an "I already have an account" divider, in `methods` order; `hideUnavailableNip07` to leave the browser-extension method out when no `window.nostr` is there (checked again for a few seconds and on focus); `requireKeyDownload` so a new account's key file must be saved before Continue; and "Upload key file" on the import step (`allowKeyFile`, default on), which reads the nsec back out of that file. `extractSecretKey`, `keyFileText`, `keyFileName` and `downloadKeyFile` are exported. The browser-extension method names the Nostr WoT extension first ("NIP-07: Nostr WoT, Alby, nos2x"), as does its no-extension error.
+
 ## 2.0.1
 
 ### Patch Changes
