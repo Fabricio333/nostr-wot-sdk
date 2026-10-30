@@ -183,6 +183,9 @@
 }
 .nui-modal-close {
   position: absolute;
+  /* Over the widget, which is positioned and comes after it: on a narrow
+     screen the widget's box reaches under the ×, and it took the taps. */
+  z-index: 1;
   right: calc(var(--nui-space) * 1.5);
   top: calc(var(--nui-space) * 1.25);
   background: transparent;
