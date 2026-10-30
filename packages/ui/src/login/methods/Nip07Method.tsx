@@ -30,7 +30,7 @@ export function Nip07Method({
   const click = async () => {
     if (!isNip07Available()) {
       onError(
-        "No NIP-07 extension detected. Install Alby, nos2x, or another Nostr signer extension and reload.",
+        "No NIP-07 extension detected. Install the Nostr WoT extension (nostr-wot.com/download), Alby, nos2x or another Nostr signer and reload.",
       );
       return;
     }
@@ -60,7 +60,7 @@ export function Nip07Method({
           Browser extension
           {busy && <span className="nui-spinner" style={{ marginLeft: 8 }} />}
         </span>
-        <span className="nui-method-hint">NIP-07 — Alby, nos2x, Flamingo</span>
+        <span className="nui-method-hint">NIP-07: Nostr WoT, Alby, nos2x</span>
       </span>
     </button>
   );

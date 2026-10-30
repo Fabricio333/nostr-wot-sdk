@@ -255,7 +255,7 @@ Re-exports from `nostr-wot-sdk/data/react` so you can import everything from `@n
 
 | Method | What it does | Persistence |
 |---|---|---|
-| `nip07` | Connects to `window.nostr` (Alby, nos2x, …) | Extension handles its own permissions |
+| `nip07` | Connects to `window.nostr` (Nostr WoT, Alby, nos2x, …) | Extension handles its own permissions |
 | `nip46` | Pastes a `bunker://` URI; pairs with the remote signer | Saves bunker URI + ephemeral client nsec to localStorage so subsequent loads silently reconnect |
 | `generate` | Generates a fresh keypair on-device; shows nsec/npub for backup, optional download | "Remember on device" writes nsec to localStorage; off by default |
 | `import` | Pastes nsec or 64-char hex private key | Same as `generate` |

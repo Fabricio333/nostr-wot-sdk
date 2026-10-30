@@ -25,6 +25,12 @@ describe('create-first layout', () => {
     await waitFor(() => expect(labels()).toEqual(['Create a new account', 'Browser extension', 'Private key or key file', 'Remote signer (bunker)']));
   });
 
+  it('names the Nostr WoT extension first among the extensions', async () => {
+    widget();
+    (window as { nostr?: unknown }).nostr = { getPublicKey: async () => '' };
+    await waitFor(() => expect(screen.getByText('NIP-07: Nostr WoT, Alby, nos2x')).toBeTruthy());
+  });
+
   it('keeps Continue off until the new key file is downloaded', () => {
     URL.createObjectURL = vi.fn(() => 'blob:x');
     URL.revokeObjectURL = vi.fn();
