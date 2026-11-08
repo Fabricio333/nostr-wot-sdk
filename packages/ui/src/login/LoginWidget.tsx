@@ -331,7 +331,7 @@ export function LoginWidget({
       );
     }
     const words = {
-      nip46: { icon: methodIcons?.nip46 ?? "🔐", label: "Remote signer (bunker)", hint: "NIP-46 — Amber, Nsec.app", view: "nip46-form" as const },
+      nip46: { icon: methodIcons?.nip46 ?? "🔐", label: "Remote signer (bunker)", hint: "NIP-46: Nostr WoT, Amber, or another NIP-46 signer", view: "nip46-form" as const },
       generate: { icon: methodIcons?.generate ?? "✨", label: "Create a new account", hint: "Generates a fresh keypair on this device", view: "generate" as const },
       import: createFirst
         ? { icon: methodIcons?.import ?? "🔑", label: "Private key or key file", hint: "Paste your nsec, or upload the key file you saved", view: "import" as const }
@@ -468,7 +468,7 @@ export function LoginWidget({
                   <span
                     className={cx("nui-method-hint", classes?.methodHint)}
                   >
-                    NIP-46 — Amber, Nsec.app
+                    NIP-46: Nostr WoT, Amber, or another NIP-46 signer
                   </span>
                 </span>
               </button>

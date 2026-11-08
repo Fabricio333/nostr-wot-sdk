@@ -377,8 +377,8 @@
 }
 .nui-tab:hover { color: var(--nui-fg); }
 .nui-tab-active {
-  background: var(--nui-bg);
-  color: var(--nui-fg);
+  background: var(--nui-primary);
+  color: var(--nui-primary-fg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
@@ -510,3 +510,29 @@
   padding: 4px 8px;
 }
 .nui-profile-skip:hover { color: var(--nui-fg); }
+
+/* QR actions are siblings so regenerating never copies the old code. */
+.nui-qr-surface { position: relative; max-width: 100%; }
+.nui-qr { display: block; cursor: pointer; max-width: 100%; }
+.nui-qr svg { width: auto; max-width: 100%; height: auto; }
+.nui-qr-retry {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 44px; height: 44px; border: 5px solid white; border-radius: 50%;
+  background: var(--nui-primary); color: var(--nui-primary-fg);
+  font: 28px/1 var(--nui-font); cursor: pointer;
+}
+.nui-qr-copy-status { font-size: 12px; text-align: center; }
+.nui-qr-copy-status:empty { display: none; }
+.nui-tab { min-height: 44px; }
+.nui-tab:focus-visible, .nui-qr:focus-visible, .nui-qr-retry:focus-visible {
+  outline: 2px solid var(--nui-primary); outline-offset: 3px;
+}
+.nui-modal:has(.nui-nip46) { max-height: calc(100dvh - 16px); box-sizing: border-box; }
+.nui-modal:has(.nui-nip46) .nui-widget { position: static; padding-top: 44px; }
+.nui-modal:has(.nui-nip46) .nui-nip46 > .nui-back:first-child,
+.nui-modal:has(.nui-nip46) .nui-modal-close {
+  position: absolute; top: 12px; width: 44px; height: 44px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.nui-modal:has(.nui-nip46) .nui-nip46 > .nui-back:first-child { left: 12px; }
+.nui-modal:has(.nui-nip46) .nui-modal-close { right: 12px; }

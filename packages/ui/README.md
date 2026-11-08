@@ -380,6 +380,8 @@ GNU General Public License version 3 only (`GPL-3.0-only`) — see [LICENSE](LIC
 
 ## NIP-46 connection actions
 
-`LoginWidget` and `LoginModal` accept `nip46Connection` (type `Nip46ConnectionOptions`). It configures native signer and clipboard actions with `labels` (`openSigner`, `pasteUri`, `copyUri`, `copied`, `copyFailed`, `fallbackHint`), `signerHref(uri, userAgent)`, optional `copyUri(uri): Promise<boolean>`, and `copyOnOpen`. `Nip46Method` accepts the same object as `connectionOptions`.
+`LoginWidget` and `LoginModal` accept `nip46Connection` (type `Nip46ConnectionOptions`). It configures native signer and clipboard actions with `labels` (`openSigner`, `pasteUri`, `copyUri`, `copied`, `copyFailed`, `fallbackHint`, `regenerate`, `qrCopy`, `signerHint`), `signerHref(uri, userAgent)`, optional `copyUri(uri): Promise<boolean>`, and `copyOnOpen`. `Nip46Method` accepts the same object as `connectionOptions`.
 
 The QR view always renders one signer link. Clipboard actions copy the original Nostr Connect URI even when `signerHref` returns a platform-specific intent, and report failure when the clipboard is absent or rejects. Each new pairing URI resets the copy state. `.nui-qr-actions` styles the clipboard action container; applications may use responsive CSS without changing the SDK-owned DOM.
+
+The QR itself is a copy button. A separate central retry button cancels the old pairing and generates a new connection URI without copying it. The QR uses high error correction and whole-pixel modules to keep the central control scannable. The signer link is the primary action; QR and clipboard controls share an accessible status message. The mode switcher supports arrow keys, Home and End.

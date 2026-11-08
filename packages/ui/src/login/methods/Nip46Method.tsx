@@ -196,7 +196,9 @@ export function Nip46Method({
       handleRef.current = handle;
       // Cancellation may reject ready while the QR renderer is still pending.
       void handle.ready.catch(() => {});
-      const svg = await QRCode.toString(handle.uri, { type: "svg", margin: 1, width: 240 });
+      // Keep modules on whole pixels; high correction tolerates the central retry control.
+      const qrWidth = (QRCode.create(handle.uri, { errorCorrectionLevel: "H" }).modules.size + 8) * 2;
+      const svg = await QRCode.toString(handle.uri, { type: "svg", margin: 4, width: qrWidth, errorCorrectionLevel: "H" });
       if (!current()) return;
       setQrUri(handle.uri);
       setQrSvg(svg);
@@ -284,7 +286,7 @@ export function Nip46Method({
         <span className="nui-method-icon" aria-hidden>🔐</span>
         <span className="nui-method-text">
           <span className="nui-method-label">Remote signer (bunker)</span>
-          <span className="nui-method-hint">NIP-46 — Amber, Nsec.app, Keychat</span>
+          <span className="nui-method-hint">NIP-46: Nostr WoT, Amber, or another NIP-46 signer</span>
         </span>
       </button>
     );
@@ -305,15 +307,21 @@ export function Nip46Method({
         </button>
       )}
 
-      <div className="nui-tabs" role="tablist">
+      <div className="nui-tabs" role="tablist" aria-label="Remote signer connection method" onKeyDown={(event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const next = event.key === "Home" ? "qr" : event.key === "End" ? "paste" : mode === "qr" ? "paste" : "qr";
+        if (next !== mode) { cancelQr(); setMode(next); }
+        event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next === "qr" ? 0 : 1]?.focus();
+      }}>
         <button
           type="button"
           role="tab"
           aria-selected={mode === "qr"}
+          tabIndex={mode === "qr" ? 0 : -1}
           className={`nui-tab ${mode === "qr" ? "nui-tab-active" : ""}`}
           onClick={() => {
-            cancelQr();
-            setMode("qr");
+            if (mode !== "qr") { cancelQr(); setMode("qr"); }
           }}
         >
           Scan QR
@@ -322,10 +330,10 @@ export function Nip46Method({
           type="button"
           role="tab"
           aria-selected={mode === "paste"}
+          tabIndex={mode === "paste" ? 0 : -1}
           className={`nui-tab ${mode === "paste" ? "nui-tab-active" : ""}`}
           onClick={() => {
-            cancelQr();
-            setMode("paste");
+            if (mode !== "paste") { cancelQr(); setMode("paste"); }
           }}
         >
           {connectionOptions?.labels?.pasteUri ?? "Paste URI"}
@@ -351,14 +359,9 @@ export function Nip46Method({
         <div className="nui-qr-wrap">
           {qrSvg ? (
             <>
-              <div
-                className="nui-qr"
-                aria-label="Nostr Connect QR code"
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
-              {qrUri && <Nip46ConnectionActions key={qrUri} uri={qrUri} options={connectionOptions} />}
+              {qrUri && <Nip46ConnectionActions key={qrUri} uri={qrUri} qrSvg={qrSvg} onRetry={() => { cancelQr(); void startQr(); }} options={connectionOptions} />}
               <p className="nui-qr-hint">
-                Scan with Amber, Nsec.app, Keychat, or any NIP-46 signer.
+                {connectionOptions?.labels?.signerHint ?? "Scan with Nostr WoT, Amber, or another NIP-46 signer."}
               </p>
               {slowHint && (
                 <p className="nui-qr-slow-hint">
@@ -366,17 +369,6 @@ export function Nip46Method({
                   re-opening the scanner.
                 </p>
               )}
-              <button
-                type="button"
-                className="nui-back"
-                style={{ alignSelf: "center" }}
-                onClick={() => {
-                  cancelQr();
-                  void startQr();
-                }}
-              >
-                Restart
-              </button>
             </>
           ) : (
             <div style={{ textAlign: "center", color: "var(--nui-muted)" }}>
@@ -398,7 +390,6 @@ export function Nip46Method({
             value={uri}
             onChange={(e) => setUri(e.target.value)}
             placeholder="bunker://abc...?relay=wss://..."
-            autoFocus
           />
           <button
             type="button"

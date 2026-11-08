@@ -8,7 +8,7 @@ import { LoginModal } from '../src/login/LoginModal';
 import { NostrSessionProvider } from '../src/session-shell';
 import type { Nip46ConnectionOptions } from '../src/login/methods/Nip46ConnectionActions';
 
-vi.mock('qrcode', () => ({ default: { toString: vi.fn().mockResolvedValue('<div>QR</div>') } }));
+vi.mock('qrcode', () => ({ default: { create: () => ({ modules: { size: 101 } }), toString: vi.fn().mockResolvedValue('<div>QR</div>') } }));
 const labels = { openSigner: 'Abrir firmante', pasteUri: 'Usar URI', copyUri: 'Copiar URI', copied: 'Copiado', copyFailed: 'No se pudo copiar', fallbackHint: 'Pega la URI en el firmante' };
 
 function Signer({ generation = 0, options }: { generation?: number; options?: Nip46ConnectionOptions }) {
@@ -30,6 +30,61 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('native NIP-46 connection actions', () => {
+  it('copies from the QR and regenerates without copying the cancelled URI', async () => {
+    const copyUri = vi.fn().mockResolvedValue(true);
+    render(<Signer options={{ copyUri }} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy connection URI from QR code' }));
+    await screen.findByRole('status');
+    await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Copied'));
+    expect(copyUri).toHaveBeenCalledWith('nostrconnect://pairing-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Regenerate connection code' }));
+    await waitFor(() => expect(screen.getByRole('link').getAttribute('href')).toBe('nostrconnect://pairing-2'));
+    expect(copyUri).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('status').textContent).toBe('');
+    expect(screen.queryByRole('button', { name: 'Restart' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy connection URI from QR code' }));
+    await waitFor(() => expect(copyUri).toHaveBeenLastCalledWith('nostrconnect://pairing-2'));
+  });
+
+  it('keeps the selected tab active and supports keyboard mode changes', async () => {
+    render(<Signer />);
+    await screen.findByRole('link');
+    fireEvent.click(screen.getByRole('tab', { name: 'Scan QR' }));
+    expect(Nip46Signer.startNostrConnect).toHaveBeenCalledTimes(1);
+    const qr = screen.getByRole('tab', { name: 'Scan QR' });
+    fireEvent.keyDown(qr, { key: 'ArrowRight' });
+    const paste = screen.getByRole('tab', { name: 'Paste URI' });
+    expect(document.activeElement).toBe(paste);
+    expect(paste.getAttribute('aria-selected')).toBe('true');
+    expect(qr.tabIndex).toBe(-1);
+    expect(screen.queryByRole('link')).toBeNull();
+    fireEvent.keyDown(paste, { key: 'Home' });
+    await screen.findByRole('link');
+    expect(document.activeElement).toBe(qr);
+    expect(Nip46Signer.startNostrConnect).toHaveBeenCalledTimes(2);
+  });
+
+  it('cancels old attempts on retry, mode change and unmount', async () => {
+    const cancels: ReturnType<typeof vi.fn>[] = [];
+    vi.mocked(Nip46Signer.startNostrConnect).mockImplementation(() => {
+      const cancel = vi.fn();
+      cancels.push(cancel);
+      return { uri: `nostrconnect://retry-${cancels.length}`, ready: new Promise(() => {}), cancel } as ReturnType<typeof Nip46Signer.startNostrConnect>;
+    });
+    const { unmount } = render(<Signer />);
+    await screen.findByRole('link');
+    fireEvent.click(screen.getByRole('button', { name: 'Regenerate connection code' }));
+    await waitFor(() => expect(cancels).toHaveLength(2));
+    expect(cancels[0]).toHaveBeenCalledTimes(1);
+    await screen.findByRole('link');
+    fireEvent.click(screen.getByRole('tab', { name: 'Paste URI' }));
+    expect(cancels[1]).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('tab', { name: 'Scan QR' }));
+    await screen.findByRole('link');
+    unmount();
+    expect(cancels[2]).toHaveBeenCalledTimes(1);
+  });
+
   it('creates one QR attempt in StrictMode and cancels it on unmount', async () => {
     const { unmount } = render(<StrictMode><Signer /></StrictMode>);
     await screen.findByRole('link', { name: 'Open in signer app' });
